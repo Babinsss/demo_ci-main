@@ -16,3 +16,5 @@ $routes->post('/storeUser', 'UserController::addUser');
 // User controller put method
 $routes->put('/updateUser/(:num)', 'UserController::editUser/$1');
 
+// User controller delete method
+$routes->match(['get', 'post'], '/user/delete/(:num)', 'UserController::delete/$1');

@@ -7,7 +7,8 @@ use App\Models\UserModel;
 
 class UserController extends BaseController
 {
-    public function listUsers() {
+    public function listUsers()
+    {
         // Call user model and fetch all users from users table in database
         $userModel = new UserModel();
         $data['users'] = $userModel->findAll();
@@ -16,14 +17,15 @@ class UserController extends BaseController
         return view('user/list', $data);
     }
 
-    public function addUser() {
+    public function addUser()
+    {
         // Declare array for data variable
         // Declare helper form for set value in form
         $data = array();
         helper(['form']);
 
         // When button save clicked
-        if($this->request->getMethod() == 'post') {
+        if ($this->request->getMethod() == 'post') {
             // Fetch all values from form
             $post = $this->request->getPost(['first_name', 'middle_name', 'last_name', 'age', 'gender_id', 'email', 'password']);
 
@@ -40,7 +42,7 @@ class UserController extends BaseController
             ];
 
             // Check if there are invalid field. Otherwise, save user to users table in database
-            if(! $this->validate($rules)) {
+            if (!$this->validate($rules)) {
                 // Validation to show list of errors in add user module
                 $data['validation'] = $this->validator;
             } else {
@@ -68,26 +70,27 @@ class UserController extends BaseController
         return view('/user/add', $data);
     }
 
-    public function editUser($id) {
+    public function editUser($id)
+    {
         // Declare array for data variable
         // Declare helper form for set value in form
         $data = array();
         helper(['form']);
 
         // When button save clicked
-        if($this->request->getMethod() == 'put') {
+        if ($this->request->getMethod() == 'put') {
             // Fetch all values from form
             $post = $this->request->getPost(['first_name', 'middle_name', 'last_name', 'age', 'gender_id', 'email', 'password']);
 
             // Validate each fields
             $rules = [
-                    'first_name' => ['label' => 'first name', 'rules' => 'required'],
-                    'middle_name' => ['label' => 'middle_name', 'rules' => 'permit_empty'],
-                    'last_name' => ['label' => 'last name', 'rules' => 'required'],
-                    'age' => ['label' => 'age', 'rules' => 'required|numeric'],
-                    'gender_id' => ['label' => 'gender', 'rules' => 'required'],
-                    'email' => ['label' => 'email', 'rules' => 'required|valid_email|is_unique[users.email, user_id, ' . $id . ']']
-                ];
+                'first_name' => ['label' => 'first name', 'rules' => 'required'],
+                'middle_name' => ['label' => 'middle_name', 'rules' => 'permit_empty'],
+                'last_name' => ['label' => 'last name', 'rules' => 'required'],
+                'age' => ['label' => 'age', 'rules' => 'required|numeric'],
+                'gender_id' => ['label' => 'gender', 'rules' => 'required'],
+                'email' => ['label' => 'email', 'rules' => 'required|valid_email|is_unique[users.email, user_id, ' . $id . ']']
+            ];
 
             // Check if there are invalid field. Otherwise, save user to users table in database
             if (!$this->validate($rules)) {
@@ -120,5 +123,38 @@ class UserController extends BaseController
 
         // Return to edit user module with genders and user value from genders and users table in database
         return view('user/edit', $data);
+    }
+    public function delete($id)
+    {
+        // Select one user
+        $userModel = new \App\Models\UserModel();
+        $data['user'] = $userModel->find($id);
+
+        // Check if the user exists
+        if (!$data['user']) {
+            // You can handle the case where the user is not found, e.g., show an error message or redirect to another page.
+            return redirect()->to('/user/list')->with('error', 'User not found');
+        }
+
+        // Check if the form is submitted and the confirmation is received
+        if ($this->request->getMethod() === 'post' && $this->request->getPost('confirm_delete')) {
+            // Delete the user from the database using the UserModel's delete method
+            $deleted = $userModel->delete($id);
+
+            if ($deleted) {
+                // Set a flash message for successful deletion
+                $session = session();
+                $session->setFlashdata('success-delete-user', 'User Successfully Deleted!');
+            } else {
+                // Handle deletion failure
+                // Optionally set a flash message or log an error
+            }
+
+            // Redirect to the user list page or any other appropriate page
+            return redirect()->to('/');
+        }
+
+        // Return delete confirmation page with user data
+        return view('user/delete', $data);
     }
 }
